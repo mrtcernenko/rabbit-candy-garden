@@ -1,0 +1,59 @@
+{
+  "assets": [
+    {
+      "name": "icon_1024",
+      "type": "icon",
+      "prompt": "App icon, one single glossy 3D white rabbit head holding one pink wrapped candy, centered, berry pink radial gradient background, crisp clean edges, soft rim light, no text"
+    },
+    {
+      "name": "bg_loader",
+      "type": "bg",
+      "prompt": "Vertical 9:16 mobile game loader background, deep plum and violet night sky over a dark moon garden, scattered soft stars, cinematic, no text, no UI elements"
+    },
+    {
+      "name": "bg_menu",
+      "type": "bg",
+      "prompt": "Vertical 9:16 mobile game menu background, moonlit candy garden with pastel paper lanterns and blossom, blush pink and mint green, vibrant 3D render, no text, no UI elements"
+    },
+    {
+      "name": "bg_game",
+      "type": "bg",
+      "prompt": "Vertical 9:16 mobile game background, soft blurred pastel candy garden, very low contrast for UI overlay, blush cream tones, no text, no UI elements"
+    },
+    {
+      "name": "sprite_rabbit",
+      "type": "sprite",
+      "prompt": "One single cute cartoon white rabbit standing, centered icon, glossy 3D render, isolated on plain white, no other objects"
+    },
+    {
+      "name": "sprite_candy_berry",
+      "type": "sprite",
+      "prompt": "One single glossy pink wrapped candy, centered icon, glossy 3D render, isolated on plain white, no other objects"
+    },
+    {
+      "name": "sprite_candy_mint",
+      "type": "sprite",
+      "prompt": "One single glossy mint green round candy, centered icon, glossy 3D render, isolated on plain white, no other objects"
+    },
+    {
+      "name": "sprite_candy_honey",
+      "type": "sprite",
+      "prompt": "One single glossy golden honey drop candy, centered icon, glossy 3D render, isolated on plain white, no other objects"
+    },
+    {
+      "name": "sprite_candy_lilac",
+      "type": "sprite",
+      "prompt": "One single glossy lilac purple jelly candy, centered icon, glossy 3D render, isolated on plain white, no other objects"
+    },
+    {
+      "name": "sprite_lantern",
+      "type": "sprite",
+      "prompt": "One single cute paper lantern with warm glow, centered icon, glossy 3D render, isolated on plain white, no other objects"
+    },
+    {
+      "name": "button_cta",
+      "type": "button",
+      "prompt": "Horizontal game CTA button background, berry pink glossy gradient, rounded, soft highlight, no text"
+    }
+  ]
+}
