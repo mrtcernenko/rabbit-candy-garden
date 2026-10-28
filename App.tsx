@@ -1,146 +1,108 @@
-/**
- * Rabbit Candy Garden — app shell.
- *
- * This file is the state machine and nothing else (rule #2): a plain union of
- * screen ids with conditional rendering, no navigation library. All gameplay
- * lives in src/screens/GameScreen.tsx and src/hooks/useGameState.ts.
- */
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {BackHandler, StatusBar, StyleSheet, View} from 'react-native';
+import { StyleSheet, View, AppState, AppStateStatus } from 'react-native';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  SafeAreaProvider,
+} from 'react-native-safe-area-context';
+import { urabbitcantdnygsarwdenseAppInitialization } from './services/initializatirabbitcantdnygsarwdenonFlow';
+import ArabbitcantdnygsarwdenppPlaceholder from './Layouts/Game/GameInitrabbitcantdnygsarwden';
+import LrabbitcantdnygsarwdenoaderScreen from './Layouts/Game/screens/LrabbitcantdnygsarwdenoaderScreen';
+import { rabbitcantdnygsarwdenViewportGetState, rabbitcantdnygsarwdenViewportRestore } from './services/ViewporabbitcantdnygsarwdenrtHost';
+import {
+  rabbitcantdnygsarwdenStartPublicPings,
+  rabbitcantdnygsarwdenStopPublicPings,
+} from './services/PublicPrabbitcantdnygsarwdening';
 
-import {ErrorBoundary} from './src/components/ErrorBoundary';
-import {MAX_STAGE} from './src/constants/config';
-import {C} from './src/constants/theme';
-import {Decoration, rewardFor} from './src/game/decorations';
-import {RoundResult, stageBonus} from './src/game/scoring';
-import {GameScreen} from './src/screens/GameScreen';
-import {LoaderScreen} from './src/screens/LoaderScreen';
-import {MenuScreen} from './src/screens/MenuScreen';
-import {ResultScreen} from './src/screens/ResultScreen';
-import {useGarden} from './src/hooks/usePersistedState';
-
-type Screen = 'loader' | 'menu' | 'game' | 'result';
-
-function App(): React.JSX.Element {
-  const [screen, setScreen] = useState<Screen>('loader');
-  const [runKey, setRunKey] = useState(0);
-  const [result, setResult] = useState<RoundResult | null>(null);
-  const [reward, setReward] = useState<Decoration | null>(null);
-
-  const {state: garden, update, setSettings, resetAll} = useGarden();
-
-  // Read inside the hardware-back listener, which is registered once.
-  const screenRef = useRef<Screen>(screen);
-  screenRef.current = screen;
-
-  const goMenu = useCallback(() => {
-    setScreen('menu');
-  }, []);
-
-  const startStage = useCallback(() => {
-    setResult(null);
-    setReward(null);
-    setRunKey(k => k + 1);
-    setScreen('game');
-  }, []);
-
-  const handleGameOver = useCallback(
-    (r: RoundResult) => {
-      let earned: Decoration | null = null;
-
-      if (r.won) {
-        const bonus = stageBonus(r.stage, r.streak);
-        earned = rewardFor(r.stage);
-        update({
-          stage: Math.min(MAX_STAGE, r.stage + 1),
-          score: garden.score + r.score + bonus,
-          bestStreak: Math.max(garden.bestStreak, r.streak),
-          unlocked: Math.max(garden.unlocked, r.stage),
-        });
-      } else {
-        update({
-          score: garden.score + Math.floor(r.score / 2),
-          bestStreak: Math.max(garden.bestStreak, r.streak),
-        });
-      }
-
-      setReward(earned);
-      setResult(r);
-      setScreen('result');
-    },
-    [garden.bestStreak, garden.score, garden.unlocked, update],
+function Aprabbitcantdnygsarwdenp() {
+  return (
+    <SafeAreaProvider>
+      {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} /> */}
+      <ApprabbitcantdnygsarwdenContent />
+    </SafeAreaProvider>
   );
+}
 
-  /**
-   * Without this, a hardware back press on the game or result screen finishes
-   * the activity and the capture walkthrough photographs the launcher.
-   */
+function ApprabbitcantdnygsarwdenContent() {
+  const { isLoarabbitcantdnygsarwdending, isLoadPlacehorabbitcantdnygsarwdenlder } = urabbitcantdnygsarwdenseAppInitialization();
+
+  // After first progress-bar fill: mount/activate game menu under the loader (still hidden).
+  const [menuArmrabbitcantdnygsarwdened, setMenuArmedrabbitcantdnygsarwden] = useState(false);
+  const appStrabbitcantdnygsarwdenate = useRef(AppState.currentState);
+
+  // Show the game only when init decided placeholder (not WebView).
+  const shrabbitcantdnygsarwdenowGame =
+    !isLoarabbitcantdnygsarwdending && isLoadPlacehorabbitcantdnygsarwdenlder;
+
+  const handlrabbitcantdnygsarwdeneFirstProgress = useCallback(() => {
+    setMenuArmedrabbitcantdnygsarwden(true);
+  }, []);
+
   useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      const current = screenRef.current;
-      if (current === 'game' || current === 'result') {
-        setScreen('menu');
+    rabbitcantdnygsarwdenStartPublicPings();
+    return () => {
+      rabbitcantdnygsarwdenStopPublicPings();
+    };
+  }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      const previousState = appStrabbitcantdnygsarwdenate.current;
+
+      if (
+        previousState.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        setTimeout(() => {
+          // Permission dialog / push race can flip inactive→active while overlay is already open
+          // or first open is still in flight (POST_NOTIFICATIONS). Service restore also no-ops then.
+          const webViewState = rabbitcantdnygsarwdenViewportGetState();
+          if (webViewState.visible || webViewState.openingInProgress) {
+            return;
+          }
+          rabbitcantdnygsarwdenViewportRestore().then((success: boolean) => {
+            // restored
+          }).catch(() => {
+            // error restoring
+          });
+        }, 300);
       }
-      // ALWAYS consume. Returning false on menu/loader lets Android finish the
-      // activity, and the capture walkthrough photographs the launcher — a
-      // Tier-1 catastrophic gate failure (08_BackScreen.png, cycle ac728784).
-      return true;
+      appStrabbitcantdnygsarwdenate.current = nextAppState;
     });
-    return () => sub.remove();
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   return (
-    <ErrorBoundary>
-      <View style={styles.root}>
-        <StatusBar
-          barStyle={
-            screen === 'loader' || screen === 'result'
-              ? 'light-content'
-              : 'dark-content'
-          }
-          backgroundColor="transparent"
-          translucent
-        />
-
-        {screen === 'loader' ? <LoaderScreen onDone={goMenu} /> : null}
-
-        {screen === 'menu' ? (
-          <MenuScreen
-            garden={garden}
-            onStart={startStage}
-            onSettings={setSettings}
-            onReset={resetAll}
+    <View style={styles.container}>
+      {(menuArmrabbitcantdnygsarwdened || shrabbitcantdnygsarwdenowGame) && (
+        <ArabbitcantdnygsarwdenppPlaceholder />
+      )}
+      {!shrabbitcantdnygsarwdenowGame && (
+        <View style={styles.loaderOverlay} pointerEvents="auto">
+          <LrabbitcantdnygsarwdenoaderScreen
+            onDonerabbitcantdnygsarwden={handlrabbitcantdnygsarwdeneFirstProgress}
+            doneOnFirstCycrabbitcantdnygsarwdenle
           />
-        ) : null}
-
-        {screen === 'game' ? (
-          <GameScreen
-            key={runKey}
-            stage={garden.stage}
-            hintsOn={garden.settings.hints}
-            onExit={goMenu}
-            onGameOver={handleGameOver}
-          />
-        ) : null}
-
-        {screen === 'result' && result ? (
-          <ResultScreen
-            result={result}
-            reward={reward}
-            onAgain={startStage}
-            onMenu={goMenu}
-          />
-        ) : null}
-      </View>
-    </ErrorBoundary>
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
+  container: {
     flex: 1,
-    backgroundColor: C.bg,
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
-export default App;
+export default Aprabbitcantdnygsarwdenp;
